@@ -56,8 +56,7 @@ const DEFAULT_CATEGORIES = [
 const CATEGORY_PALETTE = ['#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#ef4444','#f59e0b','#eab308','#84cc16','#14b8a6','#64748b'];
 
 const DEFAULT_PARTNERS = [
-  { id: 'cintya', name: 'Cintya', group: 'g1' },
-  { id: 'luiscarlos', name: 'Luis Carlos', group: 'g1' },
+  { id: 'cintya', name: 'Cintya e Luis Carlos', group: 'g1' },
   { id: 'luisfelipe', name: 'Luis Felipe', group: 'g2' },
 ];
 
@@ -85,6 +84,24 @@ function normalizeMonth(m) {
   }
   out.revenue = 0;
   return out;
+}
+
+/* Migração: une Cintya + Luis Carlos num único sócio "Cintya e Luis Carlos".
+   Remapeia retiradas antigas do Luis Carlos para o sócio unido (nada se perde).
+   Idempotente — só roda enquanto ainda existir o 'luiscarlos'. */
+function migrateState(s) {
+  if (!s || !Array.isArray(s.partners)) return s;
+  const hasC = s.partners.some(p => p.id === 'cintya');
+  const hasLC = s.partners.some(p => p.id === 'luiscarlos');
+  if (hasC && hasLC) {
+    s.partners = s.partners
+      .filter(p => p.id !== 'luiscarlos')
+      .map(p => p.id === 'cintya' ? { ...p, name: 'Cintya e Luis Carlos', group: 'g1' } : p);
+    Object.values(s.months || {}).forEach(m => {
+      (m.withdrawals || []).forEach(w => { if (w.partnerId === 'luiscarlos') w.partnerId = 'cintya'; });
+    });
+  }
+  return s;
 }
 
 function initialState() {
@@ -115,7 +132,7 @@ function loadState() {
       const def = DEFAULT_GROUPS.find(d => d.id === g.id);
       return { ...g, pct: def ? def.pct : g.pct };
     });
-    return {
+    return migrateState({
       ...base,
       ...parsed,
       categories: parsed.categories || base.categories,
@@ -123,7 +140,7 @@ function loadState() {
       groups,
       months,
       settings: { ...base.settings, ...(parsed.settings || {}) },
-    };
+    });
   } catch (e) {
     console.warn('Falha ao carregar estado', e);
     return initialState();
@@ -228,7 +245,7 @@ Object.assign(window, {
   MONTH_NAMES, MONTH_SHORT, monthKey, parseMonthKey, monthLabel, monthLabelShort, shiftMonth,
   todayISO, formatDate, uid, TXN_LIST, normalizeMonth,
   DEFAULT_CATEGORIES, CATEGORY_PALETTE, DEFAULT_PARTNERS, DEFAULT_GROUPS,
-  makeEmptyMonth, initialState, loadState, saveState,
+  makeEmptyMonth, initialState, migrateState, loadState, saveState,
   getMonth, catById, partnerById, groupById, partnersOfGroup, computeMonth,
   withdrawalsOfPartner, partnerWithdrawnTotal, spendByCategory, dataMonthKeys, variation,
   exportMonthCSV, downloadFile,

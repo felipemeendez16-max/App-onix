@@ -70,8 +70,13 @@ function App() {
     if (!window.subscribeFirestore) { _hydrated.current = true; return; }
     const unsub = window.subscribeFirestore(remoteState => {
       if (remoteState) {
-        _fromRemote.current = true;
-        setState(remoteState);
+        const before = JSON.stringify(remoteState.partners);
+        const migrated = migrateState(remoteState);
+        const changed = JSON.stringify(migrated.partners) !== before;
+        // Se a nuvem estava desatualizada, aplica E deixa salvar a versão corrigida.
+        // Caso contrário, marca como vinda da nuvem (não regrava).
+        if (!changed) _fromRemote.current = true;
+        setState(migrated);
       }
       _hydrated.current = true; // hidratado mesmo se o banco estiver vazio
     });
