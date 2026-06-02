@@ -59,23 +59,31 @@ function Root() {
 function App() {
   const [state, setState] = useState(loadState);
   const [tab, setTab] = useState('painel');
-  const _skipSave = useRef(false);
+  // _hydrated: só passa a escrever no Firestore DEPOIS de receber a primeira
+  // resposta da nuvem. Isso evita que abrir/atualizar a página empurre dados
+  // antigos por cima do que o outro acabou de salvar.
+  const _hydrated = useRef(false);
+  const _fromRemote = useRef(false);
 
-  // Firestore é a fonte da verdade: qualquer snapshot aplica direto no estado
+  // Firestore é a fonte da verdade: todo snapshot atualiza o app
   useEffect(() => {
-    if (!window.subscribeFirestore) return;
+    if (!window.subscribeFirestore) { _hydrated.current = true; return; }
     const unsub = window.subscribeFirestore(remoteState => {
-      _skipSave.current = true; // marca que essa mudança veio do Firestore
-      setState(remoteState);
+      if (remoteState) {
+        _fromRemote.current = true;
+        setState(remoteState);
+      }
+      _hydrated.current = true; // hidratado mesmo se o banco estiver vazio
     });
     return unsub;
   }, []);
 
-  // Só salva no Firestore quando a mudança foi local (usuário fez algo)
+  // Salva: ignora até hidratar; ignora mudanças que vieram da própria nuvem
   useEffect(() => {
-    if (_skipSave.current) {
-      _skipSave.current = false;
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+    if (!_hydrated.current) return;
+    if (_fromRemote.current) {
+      _fromRemote.current = false;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
       return;
     }
     saveState(state);

@@ -110,19 +110,6 @@ function Ajustes({ state, comp, cm, actions }) {
         </div>
       </div>
 
-      {/* Cloud sync */}
-      <div className="section-card">
-        <div className="section-head"><div><h3>Sincronização</h3><span className="sub">Dados salvos na nuvem (Firebase)</span></div></div>
-        <div style={{ padding: 22 }}>
-          <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12 }}>
-            <div><div style={{ fontWeight: 700 }}>Enviar dados para a nuvem</div><div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>Force o envio dos seus dados locais para sincronizar com outros dispositivos</div></div>
-            <button className="btn btn-primary" onClick={() => { if (window.syncToFirestore) { window.syncToFirestore(state); alert('Dados enviados! Peça para a outra pessoa atualizar a página.'); } }}>
-              <Icon name="refresh" size={15} /> Sincronizar agora
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Theme + data */}
       <div className="section-card">
         <div className="section-head"><div><h3>Aparência e dados</h3></div></div>

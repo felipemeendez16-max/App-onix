@@ -25,12 +25,14 @@ function syncToFirestore(state) {
 
 function subscribeFirestore(callback) {
   return _DOC.onSnapshot(snap => {
-    if (!snap.exists) return;
+    // snap.exists=false → documento ainda não existe (banco vazio): callback(null)
+    if (!snap.exists) { callback(null); return; }
     try {
       const parsed = JSON.parse(snap.data().state);
       callback(parsed);
     } catch (e) {
       console.warn('[Firebase] Falha ao ler snapshot:', e);
+      callback(null);
     }
   }, e => console.warn('[Firebase] Erro de snapshot:', e));
 }
