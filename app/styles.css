@@ -1,5 +1,5 @@
 /* ============ App Onix — Design System (v2: Inter · vivid · glassy) ============ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -103,6 +103,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
+  font-optical-sizing: none;
   line-height: 1.45;
   letter-spacing: -0.006em;
   transition: background 0.3s ease, color 0.3s ease;
