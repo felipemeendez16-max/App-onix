@@ -53,8 +53,23 @@ function MonthPicker({ value, onChange, onPick, dataKeys }) {
 function App() {
   const [state, setState] = useState(loadState);
   const [tab, setTab] = useState('painel');
+  const _fromRemote = useRef(false);
 
-  useEffect(() => { saveState(state); }, [state]);
+  // Subscribe to Firestore — update state when another device saves
+  useEffect(() => {
+    if (!window.subscribeFirestore) return;
+    const unsub = window.subscribeFirestore(remoteState => {
+      _fromRemote.current = true;
+      setState(remoteState);
+      setTimeout(() => { _fromRemote.current = false; }, 200);
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (_fromRemote.current) return;
+    saveState(state);
+  }, [state]);
   useEffect(() => { document.documentElement.setAttribute('data-theme', state.settings.theme); }, [state.settings.theme]);
 
   const cm = state.currentMonth;

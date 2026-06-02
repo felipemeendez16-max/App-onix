@@ -132,6 +132,7 @@ function loadState() {
 function saveState(state) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   catch (e) { console.warn('Falha ao salvar', e); }
+  if (window.syncToFirestore) window.syncToFirestore(state);
 }
 
 /* ---------- Lookups & calculations ---------- */
