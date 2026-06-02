@@ -64,9 +64,9 @@
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.18);
   --hairline: rgba(255, 255, 255, 0.08);
-  --text: rgb(242, 245, 252);
-  --text-dim: rgb(193, 200, 214);
-  --text-faint: rgb(151, 159, 176);
+  --text: rgb(244, 247, 252);
+  --text-dim: rgb(210, 216, 228);
+  --text-faint: rgb(170, 178, 194);
 
   --accent: rgb(0, 247, 179);
   --accent-strong: rgb(0, 255, 194);
@@ -237,7 +237,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
 .stat .stat-top { display: flex; align-items: center; justify-content: space-between; }
 .stat .stat-ico, .stat-ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); color: var(--text-dim); }
-.stat .stat-label { font-size: 11.5px; color: var(--text-dim); font-weight: 600; letter-spacing: 0.01em; }
+.stat .stat-label { font-size: 11.5px; color: var(--text-dim); font-weight: 700; letter-spacing: 0.01em; }
 .stat .stat-value { font-weight: 800; font-size: 22px; letter-spacing: -0.035em; margin-top: 3px; }
 .stat .stat-value.big { font-size: 25px; }
 .stat .stat-foot { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; font-weight: 600; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
