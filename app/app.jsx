@@ -59,26 +59,25 @@ function Root() {
 function App() {
   const [state, setState] = useState(loadState);
   const [tab, setTab] = useState('painel');
-  const _fromRemote = useRef(false);
+  const _skipSave = useRef(false);
 
-  // Subscribe to Firestore — only apply if remote is strictly newer
+  // Firestore é a fonte da verdade: qualquer snapshot aplica direto no estado
   useEffect(() => {
     if (!window.subscribeFirestore) return;
     const unsub = window.subscribeFirestore(remoteState => {
-      setState(local => {
-        const localTs = local._ts || 0;
-        const remoteTs = remoteState._ts || 0;
-        if (remoteTs <= localTs) return local; // local is newer, ignore
-        _fromRemote.current = true;
-        setTimeout(() => { _fromRemote.current = false; }, 300);
-        return remoteState;
-      });
+      _skipSave.current = true; // marca que essa mudança veio do Firestore
+      setState(remoteState);
     });
     return unsub;
   }, []);
 
+  // Só salva no Firestore quando a mudança foi local (usuário fez algo)
   useEffect(() => {
-    if (_fromRemote.current) return;
+    if (_skipSave.current) {
+      _skipSave.current = false;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+      return;
+    }
     saveState(state);
   }, [state]);
   useEffect(() => { document.documentElement.setAttribute('data-theme', state.settings.theme); }, [state.settings.theme]);
