@@ -50,6 +50,12 @@ function MonthPicker({ value, onChange, onPick, dataKeys }) {
   );
 }
 
+function Root() {
+  const [authed, setAuthed] = useState(isAuthenticated);
+  if (!authed) return <LoginScreen onAuth={() => setAuthed(true)} />;
+  return <App />;
+}
+
 function App() {
   const [state, setState] = useState(loadState);
   const [tab, setTab] = useState('painel');
@@ -137,6 +143,9 @@ function App() {
           <button className="nav-item" onClick={() => actions.setTheme(state.settings.theme === 'dark' ? 'light' : 'dark')}>
             <Icon name={state.settings.theme === 'dark' ? 'sun' : 'moon'} size={19} /> Tema {state.settings.theme === 'dark' ? 'claro' : 'escuro'}
           </button>
+          <button className="nav-item" onClick={logout} style={{ color: 'var(--neg)' }}>
+            <Icon name="logout" size={19} /> Sair
+          </button>
         </div>
       </aside>
 
@@ -169,4 +178,4 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
