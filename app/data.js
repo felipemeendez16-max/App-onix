@@ -130,9 +130,10 @@ function loadState() {
   }
 }
 function saveState(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  const stamped = { ...state, _ts: Date.now() };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stamped)); }
   catch (e) { console.warn('Falha ao salvar', e); }
-  if (window.syncToFirestore) window.syncToFirestore(state);
+  if (window.syncToFirestore) window.syncToFirestore(stamped);
 }
 
 /* ---------- Lookups & calculations ---------- */

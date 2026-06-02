@@ -61,13 +61,18 @@ function App() {
   const [tab, setTab] = useState('painel');
   const _fromRemote = useRef(false);
 
-  // Subscribe to Firestore — update state when another device saves
+  // Subscribe to Firestore — only apply if remote is strictly newer
   useEffect(() => {
     if (!window.subscribeFirestore) return;
     const unsub = window.subscribeFirestore(remoteState => {
-      _fromRemote.current = true;
-      setState(remoteState);
-      setTimeout(() => { _fromRemote.current = false; }, 200);
+      setState(local => {
+        const localTs = local._ts || 0;
+        const remoteTs = remoteState._ts || 0;
+        if (remoteTs <= localTs) return local; // local is newer, ignore
+        _fromRemote.current = true;
+        setTimeout(() => { _fromRemote.current = false; }, 300);
+        return remoteState;
+      });
     });
     return unsub;
   }, []);
