@@ -89,6 +89,7 @@ function Custos({ state, comp, cm, actions }) {
         <Stat label="Faturamento (entradas)" value={formatBRL(comp.revenue)} icon="trending" accent="var(--accent)" foot={`${comp.revenueCount} entrada${comp.revenueCount === 1 ? '' : 's'}`} />
         <Stat label="Total de custos" value={formatBRL(comp.totalCosts)} icon="receipt" accent="var(--neg)" foot={`${comp.costCount} lançamento${comp.costCount === 1 ? '' : 's'}`} />
         <Stat label="Lucro do mês" value={formatBRL(comp.profit)} icon="coins" accent={comp.profit >= 0 ? 'var(--pos)' : 'var(--neg)'} foot={`Margem ${formatPct(comp.margin)}`} />
+        <Stat label="Caixa no banco" value={formatBRL(comp.available)} icon="wallet" accent={comp.available >= 0 ? 'var(--pos)' : 'var(--neg)'} foot={`Lucro − ${formatBRL(comp.totalWithdrawn)} retirados`} />
       </div>
 
       <div className="grid-2">
