@@ -77,8 +77,34 @@ function Socios({ state, comp, cm, actions }) {
 
   const newWithdrawal = (partnerId) => setModal({ partnerId: partnerId || state.partners[0]?.id });
 
+  const cashColor = comp.available >= 0 ? 'var(--accent)' : '#ef4444';
+
   return (
     <div className="flex-col gap-20">
+      <div className="card card-pad" style={{ position: 'relative', overflow: 'hidden' }}>
+        <span className="accent-bar" style={{ background: cashColor, width: 4 }} />
+        <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div className="flex items-center gap-12" style={{ marginBottom: 4 }}>
+              <Icon name="wallet" size={16} />
+              <span style={{ fontWeight: 700, fontSize: 16 }}>Caixa total no banco</span>
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-faint)', fontWeight: 600 }}>Lucro menos o total já retirado pelos sócios</div>
+          </div>
+          <div className="mono-num" style={{ fontWeight: 700, fontSize: 30, color: cashColor }}>{formatBRL(comp.available)}</div>
+        </div>
+        <div className="grid-2" style={{ gap: 12, marginTop: 14 }}>
+          <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Lucro</div>
+            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2 }}>{formatBRL(comp.profit)}</div>
+          </div>
+          <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Total retirado</div>
+            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2 }}>{formatBRL(comp.totalWithdrawn)}</div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid-2">
         {comp.groups.map((g, i) => <GroupCard key={g.id} group={g} state={state} cm={cm} color={colors[i % colors.length]} />)}
       </div>
