@@ -91,12 +91,11 @@ function Socios({ state, comp, cm, actions }) {
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--text-faint)', fontWeight: 600 }}>Lucro menos o total já retirado pelos sócios</div>
           </div>
-          <div className="mono-num" style={{ fontWeight: 700, fontSize: 30, color: cashColor }}>{formatBRL(comp.available)}</div>
         </div>
         <div className="grid-2" style={{ gap: 12, marginTop: 14 }}>
           <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Lucro</div>
-            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2 }}>{formatBRL(comp.profit)}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Caixa no banco</div>
+            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2, color: cashColor }}>{formatBRL(comp.available)}</div>
           </div>
           <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
             <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Total retirado</div>
