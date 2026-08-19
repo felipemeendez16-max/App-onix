@@ -67,7 +67,7 @@ function GroupCard({ group, state, cm, color }) {
   );
 }
 
-function Socios({ state, comp, cm, actions }) {
+function Socios({ state, comp, compAll, cm, actions }) {
   const [filter, setFilter] = useState({});
   const [modal, setModal] = useState(null);
   const [confirm, setConfirm] = useState(null);
@@ -77,7 +77,7 @@ function Socios({ state, comp, cm, actions }) {
 
   const newWithdrawal = (partnerId) => setModal({ partnerId: partnerId || state.partners[0]?.id });
 
-  const cashColor = comp.available >= 0 ? 'var(--accent)' : '#ef4444';
+  const cashColor = compAll.cash >= 0 ? 'var(--accent)' : '#ef4444';
 
   return (
     <div className="flex-col gap-20">
@@ -89,17 +89,17 @@ function Socios({ state, comp, cm, actions }) {
               <Icon name="wallet" size={16} />
               <span style={{ fontWeight: 700, fontSize: 16 }}>Caixa total no banco</span>
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-faint)', fontWeight: 600 }}>Lucro menos o total já retirado pelos sócios</div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-faint)', fontWeight: 600 }}>Somando todos os meses: lucro menos tudo que os sócios já retiraram</div>
           </div>
         </div>
         <div className="grid-2" style={{ gap: 12, marginTop: 14 }}>
           <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
             <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Caixa no banco</div>
-            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2, color: cashColor }}>{formatBRL(comp.available)}</div>
+            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2, color: cashColor }}>{formatBRL(compAll.cash)}</div>
           </div>
           <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
             <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>Total retirado</div>
-            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2 }}>{formatBRL(comp.totalWithdrawn)}</div>
+            <div className="mono-num" style={{ fontWeight: 700, fontSize: 20, marginTop: 2 }}>{formatBRL(compAll.totalWithdrawn)}</div>
           </div>
         </div>
       </div>

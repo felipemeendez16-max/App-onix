@@ -71,7 +71,7 @@ function TxnList({ entries, state, kind, onEdit, onDelete, showPartner }) {
   );
 }
 
-function Custos({ state, comp, cm, actions }) {
+function Custos({ state, comp, cm, actions, compAll }) {
   const [filterC, setFilterC] = useState({});
   const [filterR, setFilterR] = useState({});
   const [modalCost, setModalCost] = useState(null);
@@ -89,7 +89,7 @@ function Custos({ state, comp, cm, actions }) {
         <Stat label="Faturamento (entradas)" value={formatBRL(comp.revenue)} icon="trending" accent="var(--accent)" foot={`${comp.revenueCount} entrada${comp.revenueCount === 1 ? '' : 's'}`} />
         <Stat label="Total de custos" value={formatBRL(comp.totalCosts)} icon="receipt" accent="var(--neg)" foot={`${comp.costCount} lançamento${comp.costCount === 1 ? '' : 's'}`} />
         <Stat label="Lucro do mês" value={formatBRL(comp.profit)} icon="coins" accent={comp.profit >= 0 ? 'var(--pos)' : 'var(--neg)'} foot={`Margem ${formatPct(comp.margin)}`} />
-        <Stat label="Caixa no banco" value={formatBRL(comp.available)} icon="wallet" accent={comp.available >= 0 ? 'var(--pos)' : 'var(--neg)'} foot={`Lucro − ${formatBRL(comp.totalWithdrawn)} retirados`} />
+        <Stat label="Caixa no banco" value={formatBRL(compAll.cash)} icon="wallet" accent={compAll.cash >= 0 ? 'var(--pos)' : 'var(--neg)'} foot="Todos os meses somados" />
       </div>
 
       <div className="grid-2">

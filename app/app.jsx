@@ -98,6 +98,7 @@ function App() {
   const cm = state.currentMonth;
   const comp = useMemo(() => computeMonth(state, cm), [state, cm]);
   const dataKeys = useMemo(() => dataMonthKeys(state), [state.months]);
+  const compAll = useMemo(() => computeAll(state), [state.months]);
   const prevKeys = dataKeys.filter(k => k < cm);
   const prevComp = prevKeys.length ? computeMonth(state, prevKeys[prevKeys.length - 1]) : null;
 
@@ -116,14 +117,28 @@ function App() {
     goTo: t => setTab(t),
     setTheme: t => setState(s => ({ ...s, settings: { ...s.settings, theme: t } })),
     setRevenue: v => mutateMonth(cm, m => { m.revenue = v; }),
-    saveTxn: (kind, rec) => mutateMonth(cm, m => {
+    // o lançamento vai para o mês da DATA dele, não para o mês que está na tela
+    saveTxn: (kind, rec) => setState(s => {
       const list = TXN_LIST[kind];
-      const i = m[list].findIndex(x => x.id === rec.id);
-      if (i >= 0) m[list][i] = rec; else m[list].push(rec);
+      const target = monthOfDate(rec.date) || cm;
+      const months = {};
+      Object.entries(s.months).forEach(([k, raw]) => {
+        const m = normalizeMonth(raw);
+        months[k] = { ...m, [list]: m[list].filter(x => x.id !== rec.id) };
+      });
+      const base = months[target] || makeEmptyMonth();
+      months[target] = { ...base, [list]: [...base[list], rec] };
+      // se a data for de outro mês, leva a tela junto para o lançamento não "sumir"
+      return { ...s, months, currentMonth: target };
     }),
-    removeTxn: (kind, id) => mutateMonth(cm, m => {
+    removeTxn: (kind, id) => setState(s => {
       const list = TXN_LIST[kind];
-      m[list] = m[list].filter(x => x.id !== id);
+      const months = {};
+      Object.entries(s.months).forEach(([k, raw]) => {
+        const m = normalizeMonth(raw);
+        months[k] = { ...m, [list]: m[list].filter(x => x.id !== id) };
+      });
+      return { ...s, months };
     }),
     setGroupPct: (gid, pct) => setState(s => ({ ...s, groups: s.groups.map(g => g.id === gid ? { ...g, pct } : g) })),
     setGroupLimit: (gid, limit) => setState(s => ({ ...s, groups: s.groups.map(g => g.id === gid ? { ...g, limit } : g) })),
@@ -180,7 +195,7 @@ function App() {
         </header>
 
         <main className="content">
-          <View state={state} comp={comp} cm={cm} actions={actions} prevComp={prevComp} />
+          <View state={state} comp={comp} compAll={compAll} cm={cm} actions={actions} prevComp={prevComp} />
         </main>
       </div>
 

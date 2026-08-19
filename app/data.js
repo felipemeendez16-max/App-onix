@@ -132,7 +132,7 @@ function loadState() {
       const def = DEFAULT_GROUPS.find(d => d.id === g.id);
       return { ...g, pct: def ? def.pct : g.pct };
     });
-    return migrateState({
+    return redistributeByDate(migrateState({
       ...base,
       ...parsed,
       categories: parsed.categories || base.categories,
@@ -140,7 +140,7 @@ function loadState() {
       groups,
       months,
       settings: { ...base.settings, ...(parsed.settings || {}) },
-    });
+    }));
   } catch (e) {
     console.warn('Falha ao carregar estado', e);
     return initialState();
@@ -208,6 +208,41 @@ function spendByCategory(state, entries) {
     .sort((a, b) => b.value - a.value);
 }
 
+/* Mês (YYYY-MM) a que uma data pertence */
+function monthOfDate(iso) {
+  return (typeof iso === 'string' && /^\d{4}-\d{2}/.test(iso)) ? iso.slice(0, 7) : null;
+}
+
+/* Reorganiza cada lançamento para o mês da própria data.
+   Nada é apagado: quem não tem data válida continua onde está. Idempotente. */
+function redistributeByDate(s) {
+  if (!s || !s.months) return s;
+  const months = {};
+  const ensure = k => (months[k] = months[k] || makeEmptyMonth());
+  Object.entries(s.months).forEach(([key, raw]) => {
+    const m = normalizeMonth(raw);
+    ensure(key);
+    ['revenues', 'costs', 'withdrawals'].forEach(list => {
+      m[list].forEach(e => { ensure(monthOfDate(e.date) || key)[list].push(e); });
+    });
+  });
+  s.months = months;
+  return s;
+}
+
+/* Totais somando TODOS os meses — é isso que dá o caixa real no banco */
+function computeAll(state) {
+  let revenue = 0, totalCosts = 0, totalWithdrawn = 0;
+  Object.values(state.months || {}).forEach(raw => {
+    const m = normalizeMonth(raw);
+    revenue += m.revenues.reduce((a, r) => a + (r.value || 0), 0);
+    totalCosts += m.costs.reduce((a, c) => a + (c.value || 0), 0);
+    totalWithdrawn += m.withdrawals.reduce((a, w) => a + (w.value || 0), 0);
+  });
+  const profit = revenue - totalCosts;
+  return { revenue, totalCosts, profit, totalWithdrawn, cash: profit - totalWithdrawn };
+}
+
 /* All month keys that have data, sorted */
 function dataMonthKeys(state) { return Object.keys(state.months).sort(); }
 
@@ -248,5 +283,6 @@ Object.assign(window, {
   makeEmptyMonth, initialState, migrateState, loadState, saveState,
   getMonth, catById, partnerById, groupById, partnersOfGroup, computeMonth,
   withdrawalsOfPartner, partnerWithdrawnTotal, spendByCategory, dataMonthKeys, variation,
+  monthOfDate, redistributeByDate, computeAll,
   exportMonthCSV, downloadFile,
 });
