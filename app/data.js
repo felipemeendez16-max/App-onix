@@ -233,14 +233,37 @@ function redistributeByDate(s) {
 /* Totais somando TODOS os meses — é isso que dá o caixa real no banco */
 function computeAll(state) {
   let revenue = 0, totalCosts = 0, totalWithdrawn = 0;
+  const allWithdrawals = [];
   Object.values(state.months || {}).forEach(raw => {
     const m = normalizeMonth(raw);
     revenue += m.revenues.reduce((a, r) => a + (r.value || 0), 0);
     totalCosts += m.costs.reduce((a, c) => a + (c.value || 0), 0);
-    totalWithdrawn += m.withdrawals.reduce((a, w) => a + (w.value || 0), 0);
+    m.withdrawals.forEach(w => { totalWithdrawn += (w.value || 0); allWithdrawals.push(w); });
   });
   const profit = revenue - totalCosts;
-  return { revenue, totalCosts, profit, totalWithdrawn, cash: profit - totalWithdrawn };
+
+  // a divisão entre sócios é do negócio inteiro, não de um mês — por isso soma tudo
+  const groups = state.groups.map(g => {
+    const quota = profit * (g.pct / 100);
+    const members = partnersOfGroup(state, g.id);
+    const withdrawn = allWithdrawals
+      .filter(w => partnerById(state, w.partnerId).group === g.id)
+      .reduce((a, w) => a + (w.value || 0), 0);
+    const remaining = quota - withdrawn;
+    const usePct = quota > 0 ? (withdrawn / quota) * 100 : (withdrawn > 0 ? 999 : 0);
+    return { ...g, quota, members, withdrawn, remaining, usePct };
+  });
+
+  return { revenue, totalCosts, profit, totalWithdrawn, groups, allWithdrawals, cash: profit - totalWithdrawn };
+}
+
+/* Quanto um sócio já retirou somando todos os meses */
+function partnerWithdrawnAll(state, pid) {
+  let t = 0;
+  Object.values(state.months || {}).forEach(raw => {
+    normalizeMonth(raw).withdrawals.forEach(w => { if (w.partnerId === pid) t += (w.value || 0); });
+  });
+  return t;
 }
 
 /* All month keys that have data, sorted */
@@ -283,6 +306,6 @@ Object.assign(window, {
   makeEmptyMonth, initialState, migrateState, loadState, saveState,
   getMonth, catById, partnerById, groupById, partnersOfGroup, computeMonth,
   withdrawalsOfPartner, partnerWithdrawnTotal, spendByCategory, dataMonthKeys, variation,
-  monthOfDate, redistributeByDate, computeAll,
+  monthOfDate, redistributeByDate, computeAll, partnerWithdrawnAll,
   exportMonthCSV, downloadFile,
 });

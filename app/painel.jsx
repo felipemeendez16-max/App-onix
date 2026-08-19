@@ -1,5 +1,5 @@
 /* ============ App Onix — Painel (Dashboard) ============ */
-function Painel({ state, comp, cm, actions, prevComp }) {
+function Painel({ state, comp, compAll, cm, actions, prevComp }) {
   const hasData = comp.revenue !== 0 || comp.costCount > 0 || comp.withdrawalCount > 0;
 
   const splitData = comp.groups.map((g, i) => ({
@@ -38,11 +38,11 @@ function Painel({ state, comp, cm, actions, prevComp }) {
       <div className="grid-2-1">
         <div className="section-card">
           <div className="section-head">
-            <div><h3>Divisão do lucro</h3><span className="sub">Cota garantida de cada grupo</span></div>
+            <div><h3>Divisão do lucro</h3><span className="sub">Cota garantida de cada grupo · todos os meses</span></div>
             <span className="pill">60 / 40</span>
           </div>
           <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {comp.groups.map((g, i) => {
+            {compAll.groups.map((g, i) => {
               const color = usageColor(g.usePct);
               const st = usageStatus(g.usePct);
               return (
@@ -69,9 +69,9 @@ function Painel({ state, comp, cm, actions, prevComp }) {
         </div>
 
         <div className="flex-col gap-16">
-          <Stat label="Distribuído aos sócios" value={formatBRL(comp.totalDistributed)} icon="users" accent="#3b82f6" foot={`100% do lucro = cotas`} />
+          <Stat label="Distribuído aos sócios" value={formatBRL(compAll.groups.reduce((s, g) => s + g.quota, 0))} icon="users" accent="#3b82f6" foot="100% do lucro total = cotas" />
           <Stat label="Total retirado no mês" value={formatBRL(comp.totalWithdrawn)} icon="wallet" accent="var(--warn)" foot={`${comp.withdrawalCount} retirada${comp.withdrawalCount === 1 ? '' : 's'}`} />
-          <Stat label="Saldo ainda disponível" value={formatBRL(comp.available)} icon="scale" accent={comp.available >= 0 ? 'var(--pos)' : 'var(--neg)'} foot="Lucro − retiradas" />
+          <Stat label="Caixa no banco" value={formatBRL(compAll.cash)} icon="scale" accent={compAll.cash >= 0 ? 'var(--pos)' : 'var(--neg)'} foot="Todos os meses somados" />
         </div>
       </div>
 

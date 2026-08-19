@@ -1,5 +1,7 @@
 /* ============ App Onix — Sócios (profit split & withdrawals) ============ */
-function GroupCard({ group, state, cm, color }) {
+/* Os números deste cartão são do negócio inteiro (todos os meses),
+   não do mês que está na tela — a divisão entre sócios não é mensal. */
+function GroupCard({ group, state, color }) {
   const meta = group.limit;
   const refCeil = meta != null ? meta : group.quota;
   const usePctVsRef = refCeil > 0 ? (group.withdrawn / refCeil) * 100 : (group.withdrawn > 0 ? 999 : 0);
@@ -19,7 +21,7 @@ function GroupCard({ group, state, cm, color }) {
             <div style={{ fontSize: 12.5, color: 'var(--text-faint)', fontWeight: 600 }}>{group.members.map(m => m.name).join(' + ')}</div>
           </div>
         </div>
-        <span className="pill" style={{ background: color + '1f', color }}>{group.pct}% do lucro</span>
+        <span className="pill" style={{ background: color + '1f', color }}>{group.pct}% do lucro total</span>
       </div>
 
       <div className="grid-2" style={{ gap: 12, marginBottom: 14 }}>
@@ -42,7 +44,7 @@ function GroupCard({ group, state, cm, color }) {
       {/* member breakdown */}
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 7 }}>
         {group.members.map(m => {
-          const wt = partnerWithdrawnTotal(state, cm, m.id);
+          const wt = partnerWithdrawnAll(state, m.id);
           return (
             <div key={m.id} className="flex items-center justify-between" style={{ fontSize: 13, fontWeight: 600 }}>
               <span style={{ color: 'var(--text-dim)' }}>{m.name}</span>
@@ -105,12 +107,12 @@ function Socios({ state, comp, compAll, cm, actions }) {
       </div>
 
       <div className="grid-2">
-        {comp.groups.map((g, i) => <GroupCard key={g.id} group={g} state={state} cm={cm} color={colors[i % colors.length]} />)}
+        {compAll.groups.map((g, i) => <GroupCard key={g.id} group={g} state={state} color={colors[i % colors.length]} />)}
       </div>
 
       <div className="section-card">
         <div className="section-head">
-          <div><h3>Retiradas dos sócios</h3><span className="sub">{filtered.length} de {month.withdrawals.length} · {formatBRL(filtered.reduce((s, e) => s + e.value, 0))}</span></div>
+          <div><h3>Retiradas de {monthLabel(cm)}</h3><span className="sub">{filtered.length} de {month.withdrawals.length} · {formatBRL(filtered.reduce((s, e) => s + e.value, 0))}</span></div>
           <button className="btn btn-primary btn-sm" onClick={() => newWithdrawal()}><Icon name="plus" size={15} /> Nova retirada</button>
         </div>
         <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)' }}>
