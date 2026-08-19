@@ -71,8 +71,11 @@ function App() {
     const unsub = window.subscribeFirestore(remoteState => {
       if (remoteState) {
         const before = JSON.stringify(remoteState.partners);
-        const migrated = migrateState(remoteState);
-        const changed = JSON.stringify(migrated.partners) !== before;
+        // A nuvem também precisa passar pelas arrumações: unir sócios antigos e
+        // pôr cada lançamento no mês da própria data.
+        const precisaMover = needsRedistribute(remoteState);
+        const migrated = precisaMover ? redistributeByDate(migrateState(remoteState)) : migrateState(remoteState);
+        const changed = precisaMover || JSON.stringify(migrated.partners) !== before;
         // Se a nuvem estava desatualizada, aplica E deixa salvar a versão corrigida.
         // Caso contrário, marca como vinda da nuvem (não regrava).
         if (!changed) _fromRemote.current = true;

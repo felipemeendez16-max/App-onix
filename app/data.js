@@ -230,6 +230,15 @@ function redistributeByDate(s) {
   return s;
 }
 
+/* Existe algum lançamento guardado num mês diferente do da sua data? */
+function needsRedistribute(s) {
+  return Object.entries((s && s.months) || {}).some(([key, raw]) => {
+    const m = normalizeMonth(raw);
+    return ['revenues', 'costs', 'withdrawals'].some(list =>
+      m[list].some(e => (monthOfDate(e.date) || key) !== key));
+  });
+}
+
 /* Totais somando TODOS os meses — é isso que dá o caixa real no banco */
 function computeAll(state) {
   let revenue = 0, totalCosts = 0, totalWithdrawn = 0;
@@ -306,6 +315,6 @@ Object.assign(window, {
   makeEmptyMonth, initialState, migrateState, loadState, saveState,
   getMonth, catById, partnerById, groupById, partnersOfGroup, computeMonth,
   withdrawalsOfPartner, partnerWithdrawnTotal, spendByCategory, dataMonthKeys, variation,
-  monthOfDate, redistributeByDate, computeAll, partnerWithdrawnAll,
+  monthOfDate, redistributeByDate, needsRedistribute, computeAll, partnerWithdrawnAll,
   exportMonthCSV, downloadFile,
 });
