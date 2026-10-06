@@ -199,15 +199,31 @@ module.exports = async (req, res) => {
       if (r.novos > 0) tx.set(ref, { state: JSON.stringify(estado) });
     });
 
-    const resumo = { ok: true, contas: contas.length, vistos: transacoes.length, ...r };
-    // fica no registro do Vercel mesmo quando não entrou nada novo
+    const datas = transacoes.map(t => soODia(t.date)).sort();
+    const resumo = {
+      ok: true, contas: contas.length, vistos: transacoes.length, ...r,
+      // até onde a Pluggy já tem dados da conta
+      maisAntiga: datas[0] || null, maisRecente: datas[datas.length - 1] || null,
+    };
     console.log('[sync-pluggy] resumo', JSON.stringify(resumo));
+    await anotarResultado(resumo);
     return res.status(200).json(resumo);
   } catch (e) {
     console.error('[sync-pluggy]', e);
+    await anotarResultado({ ok: false, erro: String(e.message || e).slice(0, 500) });
     return res.status(500).json({ erro: String(e.message || e) });
   }
 };
+
+/* Guarda o resultado da última execução num documento à parte (não mexe
+   nos lançamentos), para dar para saber o que aconteceu sem abrir o Vercel. */
+async function anotarResultado(dados) {
+  try {
+    await abrirBanco().doc('data/syncStatus').set({ ...dados, quando: new Date().toISOString() });
+  } catch (e) {
+    console.error('[sync-pluggy] nao consegui anotar o resultado', e);
+  }
+}
 
 /* expostos para a conferência automatizada */
 Object.assign(module.exports, { aplicar, converter, socioDestinatario });
