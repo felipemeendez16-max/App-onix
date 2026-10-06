@@ -21,6 +21,12 @@ const DOC = 'data/appState';
 
 /* ---------- utilidades ---------- */
 
+/* Variável de ambiente sem espaço/quebra de linha/aspas nas pontas —
+   é fácil colar isso junto sem perceber no painel do Vercel. */
+function env(nome) {
+  return String(process.env[nome] || '').trim().replace(/^["']+|["']+$/g, '').trim();
+}
+
 /* "José Antônio" -> "JOSE ANTONIO" */
 function semAcento(txt) {
   return String(txt || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
@@ -53,8 +59,8 @@ async function pegarChave() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      clientId: process.env.PLUGGY_CLIENT_ID,
-      clientSecret: process.env.PLUGGY_CLIENT_SECRET,
+      clientId: env('PLUGGY_CLIENT_ID'),
+      clientSecret: env('PLUGGY_CLIENT_SECRET'),
     }),
   });
   if (!r.ok) throw new Error('Pluggy /auth respondeu ' + r.status);
@@ -63,11 +69,19 @@ async function pegarChave() {
 
 async function pegarJson(url, chave) {
   const r = await fetch(url, { headers: { 'X-API-KEY': chave } });
-  if (!r.ok) throw new Error(url.split('?')[0] + ' respondeu ' + r.status);
+  if (!r.ok) {
+    const corpo = (await r.text()).slice(0, 300);
+    throw new Error(url.split('?')[0] + ' respondeu ' + r.status + ': ' + corpo);
+  }
   return r.json();
 }
 
 async function listarContas(chave, itemId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(itemId)) {
+    // não mostra o valor inteiro; só o bastante para reconhecer o que foi colado
+    throw new Error('PLUGGY_ITEM_ID fora do formato esperado (tem ' + itemId.length +
+      ' caracteres, comeca com "' + itemId.slice(0, 4) + '"). Deveria ter 36, no formato 8-4-4-4-12.');
+  }
   const d = await pegarJson('https://api.pluggy.ai/accounts?itemId=' + itemId, chave);
   return (d.results || []).filter(c => c.type === 'BANK');
 }
@@ -164,7 +178,7 @@ module.exports = async (req, res) => {
 
   try {
     const chave = await pegarChave();
-    const contas = await listarContas(chave, process.env.PLUGGY_ITEM_ID);
+    const contas = await listarContas(chave, env('PLUGGY_ITEM_ID'));
 
     const transacoes = [];
     for (const c of contas) transacoes.push(...await listarTransacoes(chave, c.id));
