@@ -7,7 +7,7 @@ const admin = require('firebase-admin');
 
 /* A partir de quando importar. Tudo que é anterior a esta data foi lançado
    à mão e já conferido contra o extrato — não pode ser tocado. */
-const DESDE = '2026-10-05';
+const DESDE = '2026-10-06';
 
 /* Saída para uma destas contas = retirada de sócio. Qualquer outro destino
    é custo da empresa. Comparação sem acento e em maiúsculas. */
