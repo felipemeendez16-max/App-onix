@@ -82,6 +82,8 @@ async function listarContas(chave, itemId) {
     throw new Error('PLUGGY_ITEM_ID fora do formato esperado (tem ' + itemId.length +
       ' caracteres, comeca com "' + itemId.slice(0, 4) + '"). Deveria ter 36, no formato 8-4-4-4-12.');
   }
+  // diagnóstico: o Item ID não é segredo; registra exatamente o que chegou
+  console.log('[sync-pluggy] item id recebido', JSON.stringify(itemId), 'tamanho', itemId.length);
   const d = await pegarJson('https://api.pluggy.ai/accounts?itemId=' + itemId, chave);
   return (d.results || []).filter(c => c.type === 'BANK');
 }
