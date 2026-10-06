@@ -82,11 +82,23 @@ async function listarContas(chave, itemId) {
     throw new Error('PLUGGY_ITEM_ID fora do formato esperado (tem ' + itemId.length +
       ' caracteres, comeca com "' + itemId.slice(0, 4) + '"). Deveria ter 36, no formato 8-4-4-4-12.');
   }
-  // diagnóstico: o Item ID não é segredo; registra exatamente o que chegou
-  console.log('[sync-pluggy] item id recebido', JSON.stringify(itemId), 'tamanho', itemId.length);
+  // situação da conexão: se não está atualizada, as contas não aparecem
+  const item = await pegarJson('https://api.pluggy.ai/items/' + itemId, chave);
+  diagnostico.conexao = {
+    status: item.status || null,
+    execucao: item.executionStatus || null,
+    atualizadaEm: item.lastUpdatedAt || null,
+    banco: (item.connector && item.connector.name) || null,
+  };
   const d = await pegarJson('https://api.pluggy.ai/accounts?itemId=' + itemId, chave);
-  return (d.results || []).filter(c => c.type === 'BANK');
+  const todas = d.results || [];
+  // todas as contas que vieram, de qualquer tipo, para saber se o filtro deixou alguma de fora
+  diagnostico.contasRecebidas = todas.map(c => ({ tipo: c.type, subtipo: c.subtype || null, nome: c.name || null }));
+  return todas.filter(c => c.type === 'BANK');
 }
+
+/* Preenchido a cada execução e anotado junto com o resultado */
+let diagnostico = {};
 
 /* Páginas de 500 em 500 até acabar (paginação por cursor do /v2) */
 async function listarTransacoes(chave, accountId) {
@@ -178,6 +190,7 @@ module.exports = async (req, res) => {
     return res.status(401).json({ erro: 'nao autorizado' });
   }
 
+  diagnostico = {};
   try {
     const chave = await pegarChave();
     const contas = await listarContas(chave, env('PLUGGY_ITEM_ID'));
@@ -204,13 +217,14 @@ module.exports = async (req, res) => {
       ok: true, contas: contas.length, vistos: transacoes.length, ...r,
       // até onde a Pluggy já tem dados da conta
       maisAntiga: datas[0] || null, maisRecente: datas[datas.length - 1] || null,
+      ...diagnostico,
     };
     console.log('[sync-pluggy] resumo', JSON.stringify(resumo));
     await anotarResultado(resumo);
     return res.status(200).json(resumo);
   } catch (e) {
     console.error('[sync-pluggy]', e);
-    await anotarResultado({ ok: false, erro: String(e.message || e).slice(0, 500) });
+    await anotarResultado({ ok: false, erro: String(e.message || e).slice(0, 500), ...diagnostico });
     return res.status(500).json({ erro: String(e.message || e) });
   }
 };
