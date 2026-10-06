@@ -215,11 +215,12 @@ module.exports = async (req, res) => {
   }
 };
 
-/* Guarda o resultado da última execução num documento à parte (não mexe
+/* Guarda o resultado da última execução no campo "sync" do documento (não mexe
    nos lançamentos), para dar para saber o que aconteceu sem abrir o Vercel. */
 async function anotarResultado(dados) {
   try {
-    await abrirBanco().doc('data/syncStatus').set({ ...dados, quando: new Date().toISOString() });
+    // merge: grava só o campo "sync"; o campo "state" (os lançamentos) fica intacto
+    await abrirBanco().doc(DOC).set({ sync: { ...dados, quando: new Date().toISOString() } }, { merge: true });
   } catch (e) {
     console.error('[sync-pluggy] nao consegui anotar o resultado', e);
   }
