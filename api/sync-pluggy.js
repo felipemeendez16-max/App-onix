@@ -183,7 +183,10 @@ module.exports = async (req, res) => {
       if (r.novos > 0) tx.set(ref, { state: JSON.stringify(estado) });
     });
 
-    return res.status(200).json({ ok: true, contas: contas.length, vistos: transacoes.length, ...r });
+    const resumo = { ok: true, contas: contas.length, vistos: transacoes.length, ...r };
+    // fica no registro do Vercel mesmo quando não entrou nada novo
+    console.log('[sync-pluggy] resumo', JSON.stringify(resumo));
+    return res.status(200).json(resumo);
   } catch (e) {
     console.error('[sync-pluggy]', e);
     return res.status(500).json({ erro: String(e.message || e) });
